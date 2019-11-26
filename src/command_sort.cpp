@@ -116,6 +116,13 @@ bool CommandSort::run_single_pass() {
             buffers_size += buffer.committed();
             buffers_capacity += buffer.capacity();
             progress_bar.update(reader.offset());
+
+            if (2 * buffer.committed() > buffer.capacity()) {
+                osmium::memory::Buffer small_buffer{buffer.committed()};
+                small_buffer.add_buffer(buffer);
+                buffer = std::move(small_buffer);
+            }
+
             osmium::apply(buffer, objects);
             data.push_back(std::move(buffer));
         }
@@ -206,6 +213,13 @@ bool CommandSort::run_multi_pass() {
                 buffers_size += buffer.committed();
                 buffers_capacity += buffer.capacity();
                 progress_bar.update(reader.offset());
+
+                if (2 * buffer.committed() > buffer.capacity()) {
+                    osmium::memory::Buffer small_buffer{buffer.committed()};
+                    small_buffer.add_buffer(buffer);
+                    buffer = std::move(small_buffer);
+                }
+
                 osmium::apply(buffer, objects);
                 data.push_back(std::move(buffer));
             }
